@@ -2,7 +2,7 @@ import React from 'react';
 import { Header } from './comps/Header';
 import { Footer } from './comps/Footer';
 
-import s from './layout.module.scss';
+// import s from './layout.module.scss';
 
 const Layout = ({ children }) => {
   return (

@@ -26,6 +26,11 @@ export const Nav = () => {
       >
         gallery
       </NavLink>
+      <NavLink //className={s.navlink}
+        to="/upload"
+      >
+        _upload
+      </NavLink>
     </nav>
   );
 };

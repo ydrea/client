@@ -1,6 +1,6 @@
 import React, { Fragment, useState, useEffect } from 'react';
 import Message from '../comps/Message';
-import Progress from '../comps/Progress';
+// import Progress from '../comps/Progress';
 import axios from 'axios';
 import exifr from 'exifr';
 
@@ -10,6 +10,7 @@ export const Upload = () => {
   const [uploadedFile, setUploadedFile] = useState({});
   const [message, setMessage] = useState('');
   const [uploadPercentage, setUploadPercentage] = useState(0);
+  const [exifile, setExifile] = useState([]);
 
   const onChange = e => {
     setFile(e.target.files[0]);
@@ -40,7 +41,7 @@ export const Upload = () => {
   //
   useEffect(() => {
     const getExif = async () => {
-      const exIf = await exifr.parse(file);
+      const exIf = await exifr.gps(file);
       console.log(exIf);
     };
     getExif();
@@ -63,7 +64,7 @@ export const Upload = () => {
           </label>
         </div>
 
-        <Progress percentage={uploadPercentage} />
+        {/* <Progress percentage={uploadPercentage} /> */}
 
         <input
           type="submit"
