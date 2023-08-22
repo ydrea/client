@@ -1,28 +1,54 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-export const getPhotos = createAsyncThunk('getphotos', async () => {
-  const res = await fetch(
-    // 'https://picsum.photos/v2/list?page=2&limit=6'
-    'http://localhost:3500/photos'
-  );
-  const result = await res.json();
-  console.log(result);
-  return result;
-});
-//
+const url = `${process.env.REACT_APP_SERVER}/photosr`;
+
+export const getPhotos = createAsyncThunk(
+  'gallery/getPhotos',
+  async () => {
+    const rez = await fetch(url);
+    const rezult = await rez.json();
+    return rezult;
+  }
+);
+
+export const getAPhoto = createAsyncThunk(
+  'gallery/getAPhoto',
+  async id => {
+    const rez = await fetch(
+      `${process.env.REACT_APP_SERVER}/photosr/${id}`
+    );
+    const rezult = await rez.json();
+    return rezult;
+  }
+);
+
 const initialState = {
-  //   photos: 0,
+  selectedPhotoIndex: 0,
+  idX: 2,
   photos: [],
   loading: false,
   error: null,
 };
 
 export const gallerySlice = createSlice({
-  name: 'galery',
+  name: 'gallery',
   initialState,
   reducers: {
-    // increment: state => (state.photos += 1),
-    // decrement: state => (state.photos -= 1),
+    increment: state => {
+      state.selectedPhotoIndex = Math.min(
+        state.selectedPhotoIndex + 1,
+        state.photos.length - 1
+      );
+    },
+    decrement: state => {
+      state.selectedPhotoIndex = Math.max(
+        state.selectedPhotoIndex - 1,
+        0
+      );
+    },
+    selectPhotoIndex: (state, action) => {
+      state.selectedPhotoIndex = action.payload;
+    },
   },
   extraReducers: {
     [getPhotos.pending]: state => {
@@ -32,18 +58,31 @@ export const gallerySlice = createSlice({
       state.photos = action.payload;
       state.loading = false;
     },
-
     [getPhotos.rejected]: (state, action) => {
       state.status = 'reject';
       state.error = action.error.message;
     },
+    [getAPhoto.fulfilled]: (state, action) => {},
   },
 });
 
-// export const { increment, decrement } = gallerySlice.actions;
+export const { increment, decrement, selectPhotoIndex } =
+  gallerySlice.actions;
 
-export const selectPhotos = state => state.galery.photos;
+export const selectPhotos = state => state.gallery.photos;
+export const selectSelectedPhotoIndex = state =>
+  state.gallery.selectedPhotoIndex;
+// ...
+export const selectAPhoto = state => {
+  const selectedIdX = state.gallery.idX;
+  const selectedPhoto = state.gallery.photos.find(photo => {
+    const rank = parseInt(photo.rank_number);
+    return rank === selectedIdX;
+  });
+
+  return selectedPhoto;
+};
+
+// ...
 
 export default gallerySlice.reducer;
-
-//

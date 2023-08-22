@@ -1,5 +1,7 @@
 import React, { Fragment, useState, useEffect } from 'react';
 import Message from '../comps/Message';
+import Form from '../comps/Form';
+import './Upload.css';
 // import Progress from '../comps/Progress';
 import axios from 'axios';
 import exifr from 'exifr';
@@ -10,7 +12,10 @@ export const Upload = () => {
   const [uploadedFile, setUploadedFile] = useState({});
   const [message, setMessage] = useState('');
   const [uploadPercentage, setUploadPercentage] = useState(0);
-  const [exifile, setExifile] = useState([]);
+  const [exifR, setExifR] = useState(null);
+
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null);
 
   const onChange = e => {
     setFile(e.target.files[0]);
@@ -21,14 +26,17 @@ export const Upload = () => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('file', file);
-    try { const res = await axios.post('/upload', formData, {
-        headers: {'Content-Type': 'multipart/form-data' },
-    //progress
+  
+    try {
+      const res = await axios.post('/upload', formData, {
+        headers: {'Content-Type': 'multipart/form-data' }
       });
-      // Clear percentage
+  
       const { fileName, filePath } = res.data;
-      setUploadedFile({ fileName, filePath });
-      setMessage(`img File ${fileName} Uploaded 2 ${filePath}`);
+      const newUploadedFile = { fileName, filePath };
+      setUploadedFiles([...uploadedFiles, newUploadedFile]);
+  
+      setMessage(`Image File ${fileName} Uploaded to ${filePath}`);
     } catch (err) {
       if (err.response.status === 500) {
         setMessage('There was a problem with the server');
@@ -41,11 +49,26 @@ export const Upload = () => {
   //
   useEffect(() => {
     const getExif = async () => {
-      const exIf = await exifr.gps(file);
-      console.log(exIf);
+      try {
+        const exIf = await exifr.parse(file, { gps: true });
+        setExifR(exIf);
+      } catch (err) {
+        console.error('Error getting EXIF data:', err);
+        setExifR(null); // Handle error by setting to null
+      }
     };
-    getExif();
+    if (file) {
+      getExif();
+    }
   }, [file]);
+
+  // useEffect(() => {
+  //   const getExif = async () => {
+  //     const exIf = await exifr.gps(file);
+  //     console.log(exIf);
+  //   };
+  //   getExif();
+  // }, [file]);
   //
 
   return (
@@ -72,6 +95,30 @@ export const Upload = () => {
           className="btn btn-primary btn-block mt-4"
         />
       </form>
+
+      <div className="thumbnails">
+        {uploadedFiles.map((file, index) => (
+          <img
+            key={index}
+            className={`thumbnail ${
+              selectedImageIndex === index ? 'selected' : ''
+            }`}
+            src={file.filePath}
+            alt={`Thumbnail ${index}`}
+            onClick={() => setSelectedImageIndex(index)}
+          />
+        ))}
+      </div>
+      {exifR !== null && (
+        <Form
+          uploadedFile={
+            selectedImageIndex !== null
+              ? uploadedFiles[selectedImageIndex]
+              : {}
+          }
+          exifR={exifR}
+        />
+      )}
       {uploadedFile ? (
         <div className="row mt-5">
           <div className="col-md-6 m-auto">
